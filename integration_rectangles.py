@@ -20,3 +20,8 @@ def rectangles_python(p1, p2, p3, p4, a, b, n):
         total += evaluer_poly(x_mid, p1, p2, p3, p4)
     return total * h
 
+def rectangles_numpy(p1, p2, p3, p4, a, b, n):
+    h = (b - a) / n
+    # Génère tous les points milieux en une seule opération vectorisée
+    x_mid = np.linspace(a + h / 2, b - h / 2, n)
+    return np.sum(evaluer_poly(x_mid, p1, p2, p3, p4)) * h
