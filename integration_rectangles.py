@@ -42,3 +42,15 @@ def erreur_vs_segments(p1, p2, p3, p4, a, b, liste_n):
         erreurs_python.append(calculer_erreur(i_python, i_exact))
         erreurs_numpy.append(calculer_erreur(i_numpy, i_exact))
     return erreurs_python, erreurs_numpy
+
+def mesurer_temps_rectangles(p1, p2, p3, p4, a, b, n, repetitions=100):
+    # Divise par repetitions pour obtenir le temps moyen par appel
+    temps_python = timeit.timeit(
+        lambda: rectangles_python(p1, p2, p3, p4, a, b, n),
+        number=repetitions
+    ) / repetitions
+    temps_numpy = timeit.timeit(
+        lambda: rectangles_numpy(p1, p2, p3, p4, a, b, n),
+        number=repetitions
+    ) / repetitions
+    return temps_python, temps_numpy
