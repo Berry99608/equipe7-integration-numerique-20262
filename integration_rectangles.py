@@ -25,3 +25,20 @@ def rectangles_numpy(p1, p2, p3, p4, a, b, n):
     # Génère tous les points milieux en une seule opération vectorisée
     x_mid = np.linspace(a + h / 2, b - h / 2, n)
     return np.sum(evaluer_poly(x_mid, p1, p2, p3, p4)) * h
+
+
+def calculer_erreur(i_numerique, i_exact):
+    return abs(i_numerique - i_exact)
+
+
+def erreur_vs_segments(p1, p2, p3, p4, a, b, liste_n):
+    # Calculé une seule fois pour éviter de répéter l'appel dans la boucle
+    i_exact = solution_analytique(p1, p2, p3, p4, a, b)
+    erreurs_python = []
+    erreurs_numpy = []
+    for n in liste_n:
+        i_python = rectangles_python(p1, p2, p3, p4, a, b, n)
+        i_numpy = rectangles_numpy(p1, p2, p3, p4, a, b, n)
+        erreurs_python.append(calculer_erreur(i_python, i_exact))
+        erreurs_numpy.append(calculer_erreur(i_numpy, i_exact))
+    return erreurs_python, erreurs_numpy
