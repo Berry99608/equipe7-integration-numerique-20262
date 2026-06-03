@@ -16,7 +16,8 @@ mini_projet_b/
 ├── integration_avancee.py      # Méthodes des trapèzes et de Simpson
 ├── visualisation.py            # Graphiques et méthodes scipy
 ├── main.py                     # Point d'entrée principal
-└── test_integration_rectangles.py
+└── tests/
+    └── test_integration_rectangles.py
 ```
 
 ## Modules Python requis
@@ -77,7 +78,7 @@ python3 main.py
 ## Tests
 
 ```bash
-python3 -m pytest test_integration_rectangles.py -v
+python3 -m pytest tests/ -v
 ```
 
 22 tests couvrant toutes les fonctions de `integration_rectangles.py`.
@@ -86,6 +87,6 @@ python3 -m pytest test_integration_rectangles.py -v
 
 Projet réalisé en équipe dans le cadre du cours MGA 802.
 
-- Bouchra, Berrissoul
-- Syndia, Jean
-- Théophile Kevin, Tsala Noah
+- Bouchra Berrissoul
+- Syndia Jean
+- Théophile Kevin Tsala Noah
