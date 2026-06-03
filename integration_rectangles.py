@@ -7,22 +7,20 @@ def evaluer_poly(x, p1, p2, p3, p4):
     return p1 + p2 * x + p3 * x**2 + p4 * x**3
 
 def solution_analytique(p1, p2, p3, p4, a, b):
-    # Antidérivée de f(x) : F(x) = p1*x + p2*x²/2 + p3*x³/3 + p4*x⁴/4
-    def antiderivee(x):
+    def F(x):
         return p1 * x + p2 * x**2 / 2 + p3 * x**3 / 3 + p4 * x**4 / 4
-    return antiderivee(b) - antiderivee(a)
+    return F(b) - F(a)
 
 def rectangles_python(p1, p2, p3, p4, a, b, n):
     h = (b - a) / n
     total = 0.0
     for i in range(n):
-        x_mid = a + (i + 0.5) * h  # Point milieu du segment i
+        x_mid = a + (i + 0.5) * h
         total += evaluer_poly(x_mid, p1, p2, p3, p4)
     return total * h
 
 def rectangles_numpy(p1, p2, p3, p4, a, b, n):
     h = (b - a) / n
-    # Génère tous les points milieux en une seule opération vectorisée
     x_mid = np.linspace(a + h / 2, b - h / 2, n)
     return np.sum(evaluer_poly(x_mid, p1, p2, p3, p4)) * h
 
@@ -32,7 +30,6 @@ def calculer_erreur(i_numerique, i_exact):
 
 
 def erreur_vs_segments(p1, p2, p3, p4, a, b, liste_n):
-    # Calculé une seule fois pour éviter de répéter l'appel dans la boucle
     i_exact = solution_analytique(p1, p2, p3, p4, a, b)
     erreurs_python = []
     erreurs_numpy = []
@@ -44,7 +41,6 @@ def erreur_vs_segments(p1, p2, p3, p4, a, b, liste_n):
     return erreurs_python, erreurs_numpy
 
 def mesurer_temps_rectangles(p1, p2, p3, p4, a, b, n, repetitions=100):
-    # Divise par repetitions pour obtenir le temps moyen par appel
     temps_python = timeit.timeit(
         lambda: rectangles_python(p1, p2, p3, p4, a, b, n),
         number=repetitions
