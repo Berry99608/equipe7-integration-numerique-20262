@@ -10,5 +10,7 @@ def scipy_trapezes(p1, p2, p3, p4, a, b, n):
     return float(integrate.trapezoid(evaluer_poly(x, p1, p2, p3, p4), x))
 
 def scipy_simpson(p1, p2, p3, p4, a, b, n):
+    if n%2 == 0: # ajout de l'option n paire que scipy.integrate.simpson demande
+        n += 1
     x = np.linspace(a, b, n+1)
     return float(integrate.simpson(evaluer_poly(x, p1, p2, p3, p4), x))
