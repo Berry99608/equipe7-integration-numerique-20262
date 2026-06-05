@@ -165,7 +165,7 @@ def graphique_convergence(liste_n, dict_erreurs,
            title=titre, ylim=(1e-16, 3))
     ax.grid(True, which="minor", lw=0.4, color="#EFEDE8")
     _legende_2blocs(ax)
-    fig.tight_layout()
+    fig.subplots_adjust(left=0.1, right=0.78, top=0.92, bottom=0.12)
     if save_path:
         fig.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig
@@ -207,7 +207,7 @@ def graphique_temps(liste_n, dict_temps,
            title=titre)
     ax.grid(True, which="minor", lw=0.4, color="#EFEDE8")
     _legende_2blocs(ax)
-    fig.tight_layout()
+    fig.subplots_adjust(left=0.1, right=0.78, top=0.92, bottom=0.12)
     if save_path:
         fig.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig
