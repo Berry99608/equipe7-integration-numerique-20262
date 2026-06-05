@@ -98,6 +98,7 @@ def trapezes_numpy(p1, p2, p3, p4, a, b, n):
     return np.dot(coeffs, y) * h / 2
 
 
+#erreur absolue de chaque methode ,
 def erreur_vs_segments_trapezes(p1, p2, p3, p4, a, b, liste_n):
     """Retourne les erreurs absolues de chaque méthode pour chaque n."""
     i_exact = solution_analytique(p1, p2, p3, p4, a, b)
