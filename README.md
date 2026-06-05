@@ -15,6 +15,7 @@ mini_projet_b/
 ├── integration_rectangles.py   # Méthode des rectangles (Python pur + NumPy)
 ├── integration_avancee.py      # Méthodes des trapèzes et de Simpson
 ├── visualisation.py            # Graphiques et méthodes scipy
+├── Analyse.py                  # Calculer les erreur et les temps par cas
 ├── main.py                     # Point d'entrée principal
 └── tests/
     └── test_integration_rectangles.py
