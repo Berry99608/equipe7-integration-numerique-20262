@@ -59,3 +59,30 @@ def _loglog(liste_n, dict_data, ylabel, titre, save_path):
         fig.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig
 
+def graphique_convergence(liste_n, dict_erreurs, titre="Convergence des méthodes", save_path=None):
+    return _loglog(liste_n, dict_erreurs, "Erreur absolue |I_num − I_exact|", titre, save_path)
+
+def graphique_temps(liste_n, dict_temps, titre="Temps de calcul vs segments", save_path=None):
+    return _loglog(liste_n, dict_temps, "Temps moyen par appel (s)", titre, save_path)
+
+def graphique_erreur_methodes(liste_n, dict_erreurs, titre="Comparaison erreur x méthode", save_path=None):
+    methodes = list(dict_erreurs.keys())
+    log_erreurs = np.log10(np.clip([dict_erreurs[i] for i in methodes], 1e-16, None))
+    xs, ys = np.meshgrid(range(len(methodes)), liste_n, indexing="ij")
+    fig, ax = plt.subplots(figsize=(13, 7))
+    sc = ax.scatter(xs.ravel(), ys.ravel(), s=np.maximum(20, 1200 + log_erreurs.ravel()*120),
+                    c=log_erreurs.ravel(), cmap=LinearSegmentedColormap.from_list("matlab", ["#77AC30", "#EDB120", "#D95319"]),
+                    alpha=0.80, edgecolors="white", linewidths=0.8)
+    for (i,j), v in np.ndenumerate(log_erreurs):
+        ax.text(i, liste_n[j], f"{v:.1f}", ha="center", va="center", fontsize=6.5, color="white", fontweight="bold")
+    ax.set_xticks(range(len(methodes)))
+    ax.set_xticklabels(methodes, rotation=30, ha="right", fontsize=9)
+    ax.set_yticks(liste_n)
+    ax.set_yticklabels(liste_n, fontsize=9)
+    ax.grid(True, axis="y", ls="--", lw=0.5, alpha=0.4)
+    ax.text(0.01, 0.01, "Petite bulle verte = erreur faible  Grosse bulle rouge = erreur élevée", transform=ax.transAxes, fontsize=7.5, color="gray", va="bottom")
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
