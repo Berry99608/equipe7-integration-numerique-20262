@@ -132,7 +132,7 @@ def afficher_resultats(p1, p2, p3, p4, a, b):
 
 # ─── Menu graphiques ──────────────────────────────────────────────────────────
 
-def menu_graphiques(p1, p2, p3, p4, a, b, prefixe="custom"):
+def menu_graphiques(p1, p2, p3, p4, a, b):
     print(f"\n  {'─'*50}")
     print("  Graphiques disponibles :")
     print("    [1] Convergence  — erreur absolue vs nombre de segments")
@@ -162,19 +162,13 @@ def menu_graphiques(p1, p2, p3, p4, a, b, prefixe="custom"):
         }
 
     if choix in ("1", "4"):
-        path = f"{prefixe}_convergence.png"
-        graphique_convergence(Liste_n, dict_erreurs, save_path=path)
-        print(f"  Graphique convergence sauvegardé : {path}")
+        graphique_convergence(Liste_n, dict_erreurs)
 
     if choix in ("2", "4"):
-        path = f"{prefixe}_temps.png"
-        graphique_temps(Liste_n, dict_temps, save_path=path)
-        print(f"  Graphique temps sauvegardé       : {path}")
+        graphique_temps(Liste_n, dict_temps)
 
     if choix in ("3", "4"):
-        path = f"{prefixe}_bulles.png"
-        graphique_erreur_methodes(Liste_n, dict_erreurs, save_path=path)
-        print(f"  Graphique bulles sauvegardé      : {path}")
+        graphique_erreur_methodes(Liste_n, dict_erreurs)
 
     plt.show()
 
@@ -194,22 +188,13 @@ def lancer_experience(df_cas, label, prefixe):
 
     afficher_synthese(df_ref, f"{label} — synthèse")
 
-    print("\n  Génération des graphiques...")
-    for cas, data in convergence.items():
-        slug = cas[:8].strip().replace(" ", "_")
-        graphique_convergence(
-            Liste_n, data["dict_erreurs"],
-            titre=f"{label} — Convergence — {cas}",
-            save_path=f"{prefixe}_convergence_{slug}.png")
-        graphique_temps(
-            Liste_n, data["dict_temps"],
-            titre=f"{label} — Temps — {cas}",
-            save_path=f"{prefixe}_temps_{slug}.png")
-        graphique_erreur_methodes(
-            Liste_n, data["dict_erreurs"],
-            titre=f"{label} — Erreur x méthode — {cas}",
-            save_path=f"{prefixe}_bubble_{slug}.png")
-        print(f"    {cas} : graphiques sauvegardés.")
+    # Un seul jeu de 3 graphiques par expérience (cas représentatif = premier cas)
+    cas_rep, data_rep = next(iter(convergence.items()))
+    print(f"\n  Génération des graphiques (cas représentatif : {cas_rep})...")
+    graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence")
+    graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul")
+    graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode")
+    print(f"    3 graphiques générés.")
 
     df_ref.to_csv(f"{prefixe}_resultats.csv", index=False, float_format="%.6e")
     print(f"\n  Résultats exportés dans : {prefixe}_resultats.csv")
@@ -243,7 +228,7 @@ def main():
             p1, p2, p3, p4, a, b = saisir_parametres()
             print(f"\n  Polynôme : f(x) = {p1} + {p2}·x + {p3}·x² + {p4}·x³  sur [{a}, {b}]")
             afficher_resultats(p1, p2, p3, p4, a, b)
-            menu_graphiques(p1, p2, p3, p4, a, b, prefixe="custom")
+            menu_graphiques(p1, p2, p3, p4, a, b)
 
         elif choix == "2":
             print("""
