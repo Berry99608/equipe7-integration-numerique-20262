@@ -45,3 +45,17 @@ def mesurer_temps(func, args, repetitions=200):
 # GRAPHIQUES
 #------------------------------------------------------------------------------------------
 
+def _loglog(liste_n, dict_data, ylabel, titre, save_path):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for nom, vals in dict_data.items():
+        s = STYLE_PAR_METHODE.get(nom, STYLE_PAR_DEFAUT)
+        ax.plot(liste_n, vals, color=s["couleur"], ls=s["trait"], lw=s["epaisseur"], marker=s["marker"],
+                markerfacecolor="white", markeredgewidth=1.2, label=nom)
+    ax.set(xscale="log", yscale="log", xlabel="Nombre de segments n", ylabel=ylabel, title=titre)
+    ax.legend(fontsize=8.5, framealpha=0.9)
+    ax.grid(True, which="both", ls="--", lw=0.5, alpha=0.6)
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
