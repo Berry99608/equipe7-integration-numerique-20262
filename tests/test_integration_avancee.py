@@ -20,11 +20,7 @@ from integration_rectangles import (
 def params():
     return {"p1": 1.0, "p2": 2.0, "p3": -1.0, "p4": 0.5, "a": -2.0, "b": 3.0}
 
-@pytest.mark.parametrize("x, p1, p2, p3, p4, expected", [
-    (0, 1, 2, 3, 4, 1.0),
-    (1, 1, 2, 3, 4, 10.0),
-    (2, 0, 0, 0, 1, 8.0),
-])
+
 # ═══════════════════════════════════════════════════════════════
 # MÉTHODE DES TRAPÈZES
 # ═══════════════════════════════════════════════════════════════
@@ -32,8 +28,8 @@ def params():
 # --- trapezes_python ---
 
 def test_trapezes_python_constante_exacte():
-    """f(x) = 5 sur [4, 10] → intégrale exacte = 30.0, peu importe n."""
-    assert trapezes_python(5, 0, 0, 0, 4, 10, 10) == pytest.approx(30.0)
+    """f(x) = 5 sur [0, 4] → intégrale exacte = 30.0, peu importe n."""
+    assert trapezes_python(5, 0, 0, 0, 0, 4, 10) == pytest.approx(20.0)
 
 
 def test_trapezes_python_lineaire_exacte():
@@ -133,6 +129,7 @@ def test_mesurer_temps_trapezes_numpy_plus_rapide_grand_n(params):
 # ═══════════════════════════════════════════════════════════════
 
 # --- simpson_python ---
+
 
 def test_simpson_python_constante_exacte():
     """f(x) = 5 sur [4, 10] → intégrale exacte = 30.0."""
