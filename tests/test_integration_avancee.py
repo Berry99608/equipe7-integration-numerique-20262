@@ -1,5 +1,5 @@
-import numpy as np
 import pytest
+
 from integration_avancee import (
     trapezes_python,
     trapezes_numpy,
@@ -231,7 +231,7 @@ def test_erreur_vs_segments_simpson_meilleur_que_trapezes(params):
     """Pour un même n, Simpson doit être plus précis que les trapèzes.
     Vrai pour les polynômes de degré > 2 (ordre de convergence supérieur).
     """
-    from integration_methodes import trapezes_python
+    from integration_avancee import trapezes_python
     i_exact = solution_analytique(**{k: params[k] for k in ("p1", "p2", "p3", "p4", "a", "b")})
     n = 10
     err_trap = calculer_erreur(trapezes_python(**params, n=n), i_exact)
