@@ -47,7 +47,7 @@ MESURER_TEMPS = construire_mesurer_temps(REPETITIONS)
 A_FIXE, B_FIXE                   = -2.0, 3.0
 
 # Valeur pour les coefficients fixes
-P1_FIXE, P2_FIXE, P3_FIXE, P4_FIXE = 1.0, -2.0, 0.5, 0.3
+P1_FIXE, P2_FIXE, P3_FIXE, P4_FIXE = 1.0, -2.0, 500.0, 400.0
 
 # EXP 1 : bornes fixes, coefficients p varient
 # Objectif : Observer l'effet de la forme du polynôme sur la précision
