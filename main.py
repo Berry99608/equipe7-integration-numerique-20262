@@ -4,6 +4,7 @@ main.py
 MGA802 — Mini-Projet B : Intégration numérique
 """
 
+import math
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 
@@ -232,8 +233,11 @@ def lancer_experience(df_cas, label, prefixe):
 
     afficher_synthese(df_ref, f"{label} — synthèse")
 
-    # Un seul jeu de 3 graphiques par expérience (cas représentatif = premier cas)
-    cas_rep, data_rep = next(iter(convergence.items()))
+    # Cas représentatif = celui avec le plus grand écart d'erreurs entre méthodes
+    def _etendue(data):
+        vals = [e for errs in data["dict_erreurs"].values() for e in errs if e > 0]
+        return math.log10(max(vals)) - math.log10(min(vals)) if vals else 0
+    cas_rep, data_rep = max(convergence.items(), key=lambda kv: _etendue(kv[1]))
     print(f"\n  Génération des graphiques (cas représentatif : {cas_rep})...")
     graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence")
     graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul")

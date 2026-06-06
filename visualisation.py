@@ -13,42 +13,60 @@ Système visuel :
 import timeit
 from numpy import array, clip, diff, linspace, log10, sign, where
 import matplotlib.pyplot as plt
+from matplotlib import font_manager as _fm
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyBboxPatch
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from scipy import integrate
 from integration_rectangles import evaluer_poly
 
-# ─── Paramètres globaux — style verre ────────────────────────────────────────
-# Fond figure : blanc légèrement bleuté, translucide
-# Fond axes   : blanc très transparent pour laisser passer le fond figure
-_FIG_FC  = "#F7F9FC"       # fond figure très légèrement bleuté
-_AXES_FC = (1, 1, 1, 0.82) # fond axes quasi-opaque, juste un souffle de transparence
-_GRID_C  = "#DDE3ED"
+# ─── Polices SF Pro (système Apple) ──────────────────────────────────────────
+for _f in ("/System/Library/Fonts/SFNS.ttf",
+           "/System/Library/Fonts/SFNSItalic.ttf",
+           "/System/Library/Fonts/SFNSMono.ttf"):
+    _fm.fontManager.addfont(_f)
+
+_SF      = "System Font"    # SF Pro — tout le texte
+_SF_MONO = ".SF NS Mono"    # SF Mono — valeurs numériques heatmap
+
+# ─── Palette de couleurs Apple ────────────────────────────────────────────────
+_FIG_FC  = "#F5F5F7"   # fond figure : gris clair Apple
+_AXES_FC = "#FFFFFF"   # fond axes : blanc pur
+_GRID_C  = "#E8E8ED"   # séparateur Apple
+_C_TITLE = "#1D1D1F"   # noir Apple (titre)
+_C_LABEL = "#6E6E73"   # gris secondaire Apple (axes, légendes)
+_C_SPINE = "#D2D2D7"   # gris tertiaire Apple (bordures)
 
 plt.rcParams.update({
-    "figure.figsize":       (10, 6),
-    "figure.dpi":           120,
-    "figure.facecolor":     _FIG_FC,
-    "axes.facecolor":       _AXES_FC,
-    "font.family":          "DejaVu Sans",
-    "font.size":            11,
-    "axes.titlesize":       14,
-    "axes.titleweight":     "bold",
-    "axes.labelsize":       11,
-    "axes.spines.top":      False,
-    "axes.spines.right":    False,
-    "axes.edgecolor":       "#C4CCDA",
-    "axes.grid":            True,
-    "grid.color":           _GRID_C,
-    "grid.linewidth":       0.7,
-    "legend.frameon":       True,
-    "legend.framealpha":    0.75,
-    "legend.edgecolor":     "#D0D8E8",
-    "legend.facecolor":     "#FAFCFF",
-    "legend.fontsize":      10,
-    "xtick.labelsize":      10,
-    "ytick.labelsize":      10,
+    "figure.figsize":        (10, 6),
+    "figure.dpi":            140,
+    "figure.facecolor":      _AXES_FC,
+    "axes.facecolor":        _AXES_FC,
+    "savefig.facecolor":     _AXES_FC,
+    "font.family":           _SF,
+    "font.size":             11,
+    "text.color":            _C_TITLE,
+    "axes.titlesize":        17,
+    "axes.titleweight":      "semibold",
+    "axes.titlecolor":       _C_TITLE,
+    "axes.labelsize":        12,
+    "axes.labelcolor":       _C_LABEL,
+    "axes.spines.top":       False,
+    "axes.spines.right":     False,
+    "axes.spines.left":      False,
+    "axes.spines.bottom":    False,
+    "axes.axisbelow":        True,
+    "axes.grid":             True,
+    "grid.color":            "#E5E5EA",
+    "grid.linewidth":        1.0,
+    "xtick.color":           "#8E8E93",
+    "ytick.color":           "#8E8E93",
+    "xtick.labelsize":       11,
+    "ytick.labelsize":       11,
+    "xtick.major.size":      0,
+    "ytick.major.size":      0,
+    "legend.frameon":        False,
+    "legend.fontsize":       10.5,
 })
 
 # ─── Système couleur / trait ──────────────────────────────────────────────────
@@ -56,7 +74,7 @@ plt.rcParams.update({
 # Palette Okabe–Ito  →  couleur = méthode mathématique
 COL = {"rect": "#0072B2", "trap": "#E69F00", "simp": "#009E73"}
 # Style de trait     →  implémentation
-LS  = {"python": "-", "numpy": "--", "scipy": ":"}
+LS  = {"python": "-", "numpy": (0, (5, 3)), "scipy": (0, (1, 2.5))}
 # Marqueurs par série
 _MK = {
     "Rectangle Python": "o", "Rectangle NumPy": "s",
@@ -120,52 +138,94 @@ def mesurer_temps(func, args, repetitions=200):
     return timeit.Timer(lambda: func(*args)).timeit(number=repetitions) / repetitions
 
 
+# ─── Helpers style Apple WWDC ────────────────────────────────────────────────
+
+def _apple_line(ax, x, y, meth, impl):
+    """Ligne épaisse arrondie + petit point blanc à chaque mesure."""
+    c  = COL[meth]
+    ls = LS[impl]
+    ax.plot(x, y, color=c, ls=ls, lw=3,
+            solid_capstyle="round", dash_capstyle="round",
+            solid_joinstyle="round", zorder=3)
+    ax.plot(x, y, "o", color=c, ms=4,
+            markerfacecolor="white", markeredgewidth=1.6, zorder=4)
+
+
+def _label_fin(ax, x, y, txt, meth):
+    """Étiquette colorée en bout de courbe."""
+    ax.annotate(txt, xy=(x, y), xytext=(8, 0),
+                textcoords="offset points",
+                color=COL[meth], fontsize=12, fontweight="semibold",
+                va="center")
+
+
+def _cle_impl(ax):
+    """Petite légende de style de trait sous le graphe."""
+    ax.text(0.0, -0.15,
+            "⸻ Python      – – NumPy      ·· SciPy",
+            transform=ax.transAxes,
+            color="#8E8E93", fontsize=10)
+
+
 # ─── Figure 1 : Convergence des méthodes ─────────────────────────────────────
 
 def graphique_convergence(liste_n, dict_erreurs,
                            titre="Convergence des méthodes", save_path=None):
     n = array(liste_n, dtype=float)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.grid(True, axis="y")
+    ax.grid(False, axis="x")
 
     for nom, vals in dict_erreurs.items():
-        c, ls, mk = _style(nom)
-        ax.loglog(n, vals, color=c, ls=ls, marker=mk, lw=1.8,
-                  markevery=2, markersize=5,
-                  markerfacecolor="white", markeredgewidth=1.4)
-
-    # ── Repère de pente −2 (ordre 2) ─────────────────────────────────────────
-    vals_ordre2 = [v for v in dict_erreurs.values() if v[0] > 1e-10]
-    if vals_ordre2:
-        ref   = max(v[0] for v in vals_ordre2) * 1.3
-        guide = ref * (n[0] / n) ** 2
-        ax.plot(n, guide, color="#9A958C", ls=(0, (5, 4)), lw=1.2, zorder=0)
-        ax.text(n[3] * 1.05, guide[3] * 0.38,
-                "pente −2,  ordre 2", color="#6B665E", fontsize=9, rotation=-26)
+        nn   = nom.lower()
+        meth = "rect" if "rect" in nn else "trap" if "trap" in nn else "simp"
+        impl = "scipy" if "scipy" in nn else "numpy" if "numpy" in nn else "python"
+        _apple_line(ax, n, vals, meth, impl)
 
     # ── Bande précision machine ───────────────────────────────────────────────
-    ax.axhspan(1e-16, 4e-14, color=COL["simp"], alpha=0.07)
-    ax.text(n[0] * 1.1, 7e-15,
-            r"précision machine  ε ≈ 2,2·10$^{-16}$",
-            color="#1C7A5B", fontsize=9)
+    ax.axhspan(1e-16, 1e-14, color=COL["simp"], alpha=0.08, lw=0)
+    ax.text(n[0] * 1.1, 3e-15, "précision machine",
+            color=COL["simp"], fontsize=9.5)
 
-    # ── Annotation « ≈ 10 ordres de grandeur » ───────────────────────────────
-    vals_haut = [v[-1] for v in dict_erreurs.values() if v[-1] > 1e-10]
-    vals_bas  = [v[-1] for v in dict_erreurs.values() if v[-1] < 1e-10]
-    if vals_haut and vals_bas:
-        y_h = min(vals_haut)
-        y_b = max(vals_bas) * 50
-        ax.annotate("", xy=(n[-1], y_b), xytext=(n[-1], y_h * 0.6),
-                    arrowprops=dict(arrowstyle="<->", color="#9A958C", lw=1.3))
-        ax.text(n[-1] * 1.06, (y_h * y_b) ** 0.5,
-                "≈ 10 ordres\nde grandeur",
-                color="#6B665E", fontsize=9, va="center")
+    # ── Repère de pente −2 ────────────────────────────────────────────────────
+    vals_ordre2 = [v for v in dict_erreurs.values() if v[0] > 1e-10]
+    if vals_ordre2:
+        ref   = max(v[0] for v in vals_ordre2) * 1.4
+        guide = ref * (n[0] / n) ** 2
+        ax.plot(n, guide, color="#C7C7CC", ls=(0, (5, 4)), lw=1.2, zorder=0)
+        ax.text(n[3] * 1.05, guide[3] * 0.38,
+                "pente −2", color="#C7C7CC", fontsize=9, rotation=-26)
 
-    ax.set(xlabel="Nombre de segments n",
-           ylabel=r"Erreur absolue $|I_{num} - I_{exact}|$",
-           title=titre, ylim=(1e-16, 3))
-    ax.grid(True, which="minor", lw=0.4, color="#EFEDE8")
-    _legende_2blocs(ax)
-    fig.subplots_adjust(left=0.1, right=0.78, top=0.92, bottom=0.12)
+    # ── Étiquettes au bout — écartées si trop proches en log ─────────────────
+    targets = []
+    for meth_key, label in [("rect", "Rectangle"), ("trap", "Trapèze"), ("simp", "Simpson")]:
+        candidats = {k: v for k, v in dict_erreurs.items()
+                     if meth_key in k.lower() and "python" in k.lower()}
+        if candidats:
+            vals = list(candidats.values())[0]
+            targets.append((max(vals[-1], 2e-16), label, meth_key))
+
+    targets.sort(key=lambda t: t[0], reverse=True)
+    MIN_GAP = 1.2  # décades minimum entre deux étiquettes
+    adjusted, prev_log = [], None
+    for y_end, label, meth_key in targets:
+        log_y = log10(y_end)
+        if prev_log is not None and prev_log - log_y < MIN_GAP:
+            log_y = prev_log - MIN_GAP
+        adjusted.append((10 ** log_y, label, meth_key))
+        prev_log = log_y
+    for y_end, label, meth_key in adjusted:
+        _label_fin(ax, n[-1], y_end, label, meth_key)
+
+    ax.set_xlim(n[0] * 0.8, n[-1] * 4.0)
+    ax.set_ylim(1e-16, 3)
+    ax.set_xlabel("Nombre de segments n")
+    ax.set_ylabel("Erreur absolue")
+    ax.set_title(titre, loc="left", pad=16)
+    _cle_impl(ax)
+    fig.subplots_adjust(left=0.11, right=0.80, top=0.90, bottom=0.19)
     if save_path:
         fig.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig
@@ -176,38 +236,52 @@ def graphique_convergence(liste_n, dict_erreurs,
 def graphique_temps(liste_n, dict_temps,
                     titre="Temps de calcul vs segments", save_path=None):
     n = array(liste_n, dtype=float)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.grid(True, axis="y")
+    ax.grid(False, axis="x")
 
     for nom, vals in dict_temps.items():
-        c, ls, mk = _style(nom)
-        ax.loglog(n, vals, color=c, ls=ls, marker=mk, lw=1.8,
-                  markevery=2, markersize=5,
-                  markerfacecolor="white", markeredgewidth=1.4)
+        nn   = nom.lower()
+        meth = "rect" if "rect" in nn else "trap" if "trap" in nn else "simp"
+        impl = "scipy" if "scipy" in nn else "numpy" if "numpy" in nn else "python"
+        _apple_line(ax, n, vals, meth, impl)
 
-    # ── Annotation point de croisement Python → NumPy ────────────────────────
+    # ── Point de croisement Python → NumPy ───────────────────────────────────
     noms_py = [k for k in dict_temps if "python" in k.lower() and "rect" in k.lower()]
     noms_np = [k for k in dict_temps if "numpy"  in k.lower() and "rect" in k.lower()]
     if noms_py and noms_np:
         t_py = array(dict_temps[noms_py[0]])
         t_np = array(dict_temps[noms_np[0]])
         idx  = where(diff(sign(t_np - t_py)))[0]
-        n_cross = int(liste_n[idx[0]]) if len(idx) > 0 else 40
-        y_cross = dict_temps[noms_np[0]][idx[0]] if len(idx) > 0 else 1e-5
-        ax.axvline(n_cross, color="#9A958C", ls=":", lw=1.3, zorder=0)
+        if len(idx) > 0:
+            n_cross = int(liste_n[idx[0]])
+            y_cross = dict_temps[noms_np[0]][idx[0]]
+        else:
+            n_cross, y_cross = 40, 1e-5
+        ax.axvline(n_cross, color="#C7C7CC", ls=":", lw=1.5, zorder=0)
         ax.annotate(
-            f"au-delà de n ≈ {n_cross},\nle vectorisé NumPy l'emporte",
+            f"n ≈ {n_cross} : NumPy\nl'emporte",
             xy=(n_cross, y_cross),
-            xytext=(n_cross * 4, y_cross * 0.28),
-            fontsize=9.5, color="#23211C",
-            arrowprops=dict(arrowstyle="->", color="#9A958C", lw=1.2),
+            xytext=(n_cross * 4, y_cross * 3),
+            fontsize=9.5, color=_C_TITLE,
+            arrowprops=dict(arrowstyle="->", color="#C7C7CC", lw=1.4),
         )
 
-    ax.set(xlabel="Nombre de segments n",
-           ylabel="Temps moyen par appel (s)",
-           title=titre)
-    ax.grid(True, which="minor", lw=0.4, color="#EFEDE8")
-    _legende_2blocs(ax)
-    fig.subplots_adjust(left=0.1, right=0.78, top=0.92, bottom=0.12)
+    # ── Légende en bas à gauche (zone la moins chargée) ──────────────────────
+    handles = [
+        Line2D([0], [0], color=COL["rect"], lw=2.5, label="Rectangle"),
+        Line2D([0], [0], color=COL["trap"], lw=2.5, label="Trapèze"),
+        Line2D([0], [0], color=COL["simp"], lw=2.5, label="Simpson"),
+    ]
+    ax.legend(handles=handles, loc="lower right", fontsize=10, frameon=False)
+
+    ax.set_xlabel("Nombre de segments n")
+    ax.set_ylabel("Temps moyen par appel (s)")
+    ax.set_title(titre, loc="left", pad=16)
+    _cle_impl(ax)
+    fig.subplots_adjust(left=0.11, right=0.95, top=0.90, bottom=0.19)
     if save_path:
         fig.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig
@@ -249,8 +323,8 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
     left_margin  = 3.1
     bottom_extra = 1.2   # espace pour le label n + barre de légende
 
-    total_w = (left_margin + n_cols * (cell_w + gap)) * 0.88
-    total_h = (0.7 + n_rows * (cell_h + gap) + bottom_extra) * 0.88
+    total_w = (left_margin + n_cols * (cell_w + gap)) * 0.74
+    total_h = (0.7 + n_rows * (cell_h + gap) + bottom_extra) * 0.74
 
     fig, ax = plt.subplots(figsize=(total_w, total_h))
     ax.set_xlim(-left_margin, n_cols * (cell_w + gap) + 0.5)
@@ -265,7 +339,7 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
 
         ax.text(-0.18, row_y + cell_h / 2, meth,
                 ha="right", va="center", fontsize=10.5,
-                fontfamily="DejaVu Sans Mono", color="#2D3748")
+                fontfamily=_SF_MONO, color=_C_TITLE)
 
         for j in range(n_cols):
             val = data[i, j]
@@ -283,12 +357,12 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
             )
             ax.add_patch(patch)
 
-            txt_col = "white" if t < 0.55 else "#2E1A0E"
+            txt_col = "#FFFFFF" if t < 0.55 else _C_TITLE
             ax.text(x + cell_w / 2, row_y + cell_h / 2,
                     f"{val:.1f}",
                     ha="center", va="center",
                     fontsize=9.5, fontweight="bold", color=txt_col,
-                    fontfamily="DejaVu Sans Mono")
+                    fontfamily=_SF_MONO)
 
     # ── Étiquettes n en haut ──────────────────────────────────────────────────
     top_y = n_rows * (cell_h + gap) + 0.08
@@ -301,17 +375,18 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
     top_hd = n_rows * (cell_h + gap)
     # titre principal
     ax.text(mid_x, top_hd + 1.05, titre,
-            ha="center", va="bottom", fontsize=14, fontweight="bold")
+            ha="center", va="bottom", fontsize=14, fontweight="semibold",
+            fontfamily=_SF)
     # sous-titre explicatif (une ligne en dessous)
     ax.text(mid_x, top_hd + 0.58,
             r"chaque cellule = $\log_{10}|I_{num}-I_{exact}|$  "
             r"(ex. : $-14 \Rightarrow$ erreur $\approx 10^{-14}$)",
-            ha="center", va="bottom", fontsize=9, color="#888888", style="italic")
+            ha="center", va="bottom", fontsize=9, color=_C_LABEL, style="italic")
 
     # ── Label « Nombre de segments n → » ─────────────────────────────────────
     label_y = -(cell_h + gap) * 0.25
     ax.text(mid_x, label_y, "Nombre de segments n →",
-            ha="center", va="top", fontsize=10, color="#888888")
+            ha="center", va="top", fontsize=10, color=_C_LABEL)
 
     # ── Barre de légende arrondie ─────────────────────────────────────────────
     bar_y     = label_y - 0.45
@@ -340,11 +415,11 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
 
     # labels de la barre
     ax.text(bar_left - 0.2, bar_y + bar_h / 2, "erreur élevée\n(log₁₀ ≈ 0)",
-            ha="right", va="center", fontsize=9, color="#666666")
+            ha="right", va="center", fontsize=9, color=_C_LABEL)
     ax.text(bar_right + 0.2, bar_y + bar_h / 2, "précision machine\n(log₁₀ ≈ −16)",
-            ha="left", va="center", fontsize=9, color="#666666")
+            ha="left", va="center", fontsize=9, color=_C_LABEL)
 
     fig.tight_layout(pad=0.4)
     if save_path:
-        fig.savefig(save_path, dpi=150, bbox_inches="tight", facecolor="white")
+        fig.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=_FIG_FC)
     return fig
