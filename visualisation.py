@@ -327,18 +327,16 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
         zorder=2,
     )
 
-    # clip arrondi de la barre
-    pad_r = 0.14
-    clip  = FancyBboxPatch(
-        (bar_left  - pad_r, bar_y - pad_r * 0.4),
-        bar_right - bar_left + 2 * pad_r,
-        bar_h + pad_r * 0.8,
-        boxstyle="round,pad=0.0",
+    # forme pillule : rounding_size = moitié de la hauteur
+    bar_clip = FancyBboxPatch(
+        (bar_left, bar_y),
+        bar_right - bar_left, bar_h,
+        boxstyle=f"round,pad=0,rounding_size={bar_h / 2}",
         transform=ax.transData,
         facecolor="none", edgecolor="none",
     )
-    ax.add_patch(clip)
-    im.set_clip_path(clip)
+    ax.add_patch(bar_clip)
+    im.set_clip_path(bar_clip)
 
     # labels de la barre
     ax.text(bar_left - 0.2, bar_y + bar_h / 2, "erreur élevée\n(log₁₀ ≈ 0)",
