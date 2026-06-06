@@ -15,10 +15,16 @@ from Analyse import construire_mesurer_temps, calculer_convergences, calculer_df
 
 # ─── Paramètres globaux ───────────────────────────────────────────────────────
 
+# Valeurs de n testées pour les courbes de convergence et de temps
 Liste_n    = [5, 10, 20, 50, 100, 200, 500, 1000]
+
+# Valeur de n utilisé pour la comparaison directe
 n_ref      = 100
+
+# Nombre de répétitions timeit pour chaque mesure de temps
 REPETITIONS = 100
 
+# Dictionnaire des 8 fonctions d'intégration
 FONCTIONS = {
     "Rectangle Python": rectangles_python,
     "Rectangle NumPy":  rectangles_numpy,
@@ -30,13 +36,19 @@ FONCTIONS = {
     "Scipy Simpson":    scipy_simpson,
 }
 
+# Dictionnaire des fonctions de mesure de temps, construit dans Analyse.py
 MESURER_TEMPS = construire_mesurer_temps(REPETITIONS)
 
 # ─── Valeurs par défaut ───────────────────────────────────────────────────────
 
+# Valeur pour les bornes fixes
 A_FIXE, B_FIXE                   = -2.0, 3.0
+
+# Valeur pour les coefficients fixes
 P1_FIXE, P2_FIXE, P3_FIXE, P4_FIXE = 1.0, -2.0, 0.5, 0.3
 
+# EXP 1 : bornes fixes, coefficients p varient
+# Objectif : Observer l'effet de la forme du polynôme sur la précision
 df_exp1 = pd.DataFrame({
     "cas": ["cas 1", "cas 2", "cas 3", "cas 4", "cas 5"],
     "p1":  [0.0,  1.0,  1.0,  5.0, 3.0],
@@ -47,6 +59,8 @@ df_exp1 = pd.DataFrame({
     "b":   [B_FIXE] * 5,
 })
 
+# EXP 2 : bornes varient, coefficients p fixes
+# Objectif : Observer l'effet de la taille et position de l'intervalle sur la précision
 df_exp2 = pd.DataFrame({
     "cas": ["cas 1", "cas 2", "cas 3", "cas 4", "cas 5"],
     "p1":  [P1_FIXE] * 5,
@@ -57,6 +71,8 @@ df_exp2 = pd.DataFrame({
     "b":   [ 1.0,  2.0,  5.0, -1.0,  0.5],
 })
 
+# EXP 1 : bornes varient et coefficients p varient simultanément
+# Objectif : Cas général où tout varie
 df_exp3 = pd.DataFrame({
     "cas": ["cas A", "cas B", "cas C", "cas D", "cas E"],
     "p1":  [ 2.0,  0.0, -1.0,  4.0, 3.1],
@@ -88,6 +104,11 @@ def afficher_banniere():
 
 
 def demander_float(invite, defaut):
+    """
+    Demande un nombre flottant à l'utilisateur avec une valeur par défaut.
+    Si l'utilisateur appuie sur Entrée sans rien saisir, retourne defaut.
+    Si la saisie est invalide, affiche un avertissement et retourne defaut.
+    """
     rep = input(f"  {invite} (défaut = {defaut}) : ").strip()
     if rep == "":
         return defaut
@@ -99,6 +120,10 @@ def demander_float(invite, defaut):
 
 
 def saisir_parametres():
+    """
+    Guide l'utilisateur pour saisir les 4 coefficients et les 2 bornes.
+    Vérifie que a < b et inverse les bornes si nécessaire.
+    """
     print(f"\n  f(x) = p1 + p2·x + p3·x² + p4·x³")
     print("  Appuyez sur Entrée pour conserver la valeur par défaut.\n")
     p1 = demander_float("p1", P1_FIXE)
@@ -117,6 +142,11 @@ def saisir_parametres():
 # ─── Affichage des résultats numériques ───────────────────────────────────────
 
 def afficher_resultats(p1, p2, p3, p4, a, b):
+    """
+    Calcule et affiche la solution exacte + résultats de toutes les méthodes
+    à n = n_ref sous forme de tableau console.
+    Pour chaque méthode : valeur numérique, erreur absolue, temps en µs.
+    """
     print(f"\n  Calcul avec n = {n_ref} segments...")
     i_exact = solution_analytique(p1, p2, p3, p4, a, b)
     print(f"\n  Solution analytique exacte  : {i_exact:.10f}\n")
@@ -133,6 +163,11 @@ def afficher_resultats(p1, p2, p3, p4, a, b):
 # ─── Menu graphiques ──────────────────────────────────────────────────────────
 
 def menu_graphiques(p1, p2, p3, p4, a, b):
+    """
+    Affiche un menu pour choisir quel(s) graphique(s) tracer.
+    Calcule les données nécessaires (erreurs sur Liste_n, puis temps si demandé)
+    et appelle les fonctions de visualisation correspondantes.
+    """
     print(f"\n  {'─'*50}")
     print("  Graphiques disponibles :")
     print("    [1] Convergence  — erreur absolue vs nombre de segments")
@@ -176,6 +211,16 @@ def menu_graphiques(p1, p2, p3, p4, a, b):
 # ─── Expériences prédéfinies ──────────────────────────────────────────────────
 
 def lancer_experience(df_cas, label, prefixe):
+    """
+    Exécute une expérience complète : calcul, synthèse console et graphiques.
+    Étapes :
+      1. Affiche le tableau des cas testés
+      2. Calcule df_ref (erreurs et temps à n_ref) via Analyse.py
+      3. Calcule les convergences sur Liste_n via Analyse.py
+      4. Affiche la synthèse console (classement, meilleure méthode)
+      5. Génère 3 graphiques pour le cas représentatif (premier cas)
+      6. Exporte les résultats dans un CSV
+    """
     print(f"\n{SEP}\n  {label}\n{SEP}")
     print(f"\n  Cas de test :\n")
     print(df_cas.to_string(index=False))
@@ -202,6 +247,7 @@ def lancer_experience(df_cas, label, prefixe):
     return df_ref, convergence
 
 
+# Dictionnaire des expériences prédéfinies pour le menu
 EXPERIENCES = {
     "1": (df_exp1, "EXP 1 — coefficients p varient, bornes fixes",      "exp1"),
     "2": (df_exp2, "EXP 2 — bornes varient, coefficients p fixes",       "exp2"),
@@ -212,6 +258,9 @@ EXPERIENCES = {
 # ─── Programme principal ──────────────────────────────────────────────────────
 
 def main():
+    """
+    Boucle principale du programme avec menu interactif
+    """
     afficher_banniere()
 
     while True:
