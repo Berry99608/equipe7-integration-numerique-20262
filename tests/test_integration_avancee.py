@@ -1,5 +1,5 @@
 import pytest
-
+import numpy as np
 from integration_avancee import (
     trapezes_python,
     trapezes_numpy,
@@ -29,7 +29,7 @@ def params():
 
 def test_trapezes_python_constante_exacte():
     """f(x) = 5 sur [4, 10] → intégrale exacte = 30.0, peu importe n."""
-    assert trapezes_python(5, 0, 0, 0, 0, 4, 10) == pytest.approx(30.0)
+    assert trapezes_python(5, 0, 0, 0, 4, 10, 10) == pytest.approx(30.0)
 
 
 def test_trapezes_python_lineaire_exacte():
@@ -56,7 +56,7 @@ def test_trapezes_python_proche_exact(params):
 
 def test_trapezes_numpy_constante_exacte():
     """Même cas que Python : f(x) = 5 sur [4, 10] → 30.0."""
-    assert trapezes_numpy(5, 0, 0, 0, 0, 4, 10) == pytest.approx(30.0)
+    assert trapezes_numpy(5, 0, 0, 0, 4, 10, 10) == pytest.approx(30.0)
 
 
 def test_trapezes_numpy_lineaire_exacte():
@@ -170,7 +170,7 @@ def test_simpson_python_n_impair_accepte(params):
 
 def test_simpson_numpy_constante_exacte():
     """Même cas que Python : f(x) = 5 sur [4, 10] → 30.0."""
-    assert simpson_numpy(5, 0, 0, 0, 0, 4, 10) == pytest.approx(30.0)
+    assert simpson_numpy(5, 0, 0, 0, 4, 10, 10) == pytest.approx(30.0)
 
 
 def test_simpson_numpy_cubique_exacte():
