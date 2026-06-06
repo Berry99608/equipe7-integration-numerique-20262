@@ -4,8 +4,7 @@ main.py
 MGA802 — Mini-Projet B : Intégration numérique
 """
 
-import numpy as np
-import pandas as pd
+from pandas import DataFrame
 import matplotlib.pyplot as plt
 
 from integration_rectangles import solution_analytique, rectangles_python, rectangles_numpy, calculer_erreur
@@ -49,7 +48,7 @@ P1_FIXE, P2_FIXE, P3_FIXE, P4_FIXE = 1.0, -2.0, 0.5, 0.3
 
 # EXP 1 : bornes fixes, coefficients p varient
 # Objectif : Observer l'effet de la forme du polynôme sur la précision
-df_exp1 = pd.DataFrame({
+df_exp1 = DataFrame({
     "cas": ["cas 1", "cas 2", "cas 3", "cas 4", "cas 5"],
     "p1":  [0.0,  1.0,  1.0,  5.0, 3.0],
     "p2":  [1.0,  2.0, -2.0, -8.0, 0.0],
@@ -61,7 +60,7 @@ df_exp1 = pd.DataFrame({
 
 # EXP 2 : bornes varient, coefficients p fixes
 # Objectif : Observer l'effet de la taille et position de l'intervalle sur la précision
-df_exp2 = pd.DataFrame({
+df_exp2 = DataFrame({
     "cas": ["cas 1", "cas 2", "cas 3", "cas 4", "cas 5"],
     "p1":  [P1_FIXE] * 5,
     "p2":  [P2_FIXE] * 5,
@@ -73,7 +72,7 @@ df_exp2 = pd.DataFrame({
 
 # EXP 1 : bornes varient et coefficients p varient simultanément
 # Objectif : Cas général où tout varie
-df_exp3 = pd.DataFrame({
+df_exp3 = DataFrame({
     "cas": ["cas A", "cas B", "cas C", "cas D", "cas E"],
     "p1":  [ 2.0,  0.0, -1.0,  4.0, 3.1],
     "p2":  [-3.0,  5.0,  2.0, -2.0, 2.6],
@@ -241,8 +240,6 @@ def lancer_experience(df_cas, label, prefixe):
     graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode")
     print(f"    3 graphiques générés.")
 
-    df_ref.to_csv(f"{prefixe}_resultats.csv", index=False, float_format="%.6e")
-    print(f"\n  Résultats exportés dans : {prefixe}_resultats.csv")
     print(f"  {label} terminée.")
     return df_ref, convergence
 

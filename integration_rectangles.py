@@ -1,4 +1,4 @@
-import numpy as np
+from numpy import linspace, sum as npsum
 import timeit
 
 
@@ -21,8 +21,8 @@ def rectangles_python(p1, p2, p3, p4, a, b, n):
 
 def rectangles_numpy(p1, p2, p3, p4, a, b, n):
     h = (b - a) / n
-    x_mid = np.linspace(a + h / 2, b - h / 2, n)
-    return np.sum(evaluer_poly(x_mid, p1, p2, p3, p4)) * h
+    x_mid = linspace(a + h / 2, b - h / 2, n)
+    return npsum(evaluer_poly(x_mid, p1, p2, p3, p4)) * h
 
 
 def calculer_erreur(i_numerique, i_exact):

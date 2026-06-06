@@ -9,7 +9,7 @@ Orchestration des calculs d'analyse numérique:
 from integration_rectangles import solution_analytique, calculer_erreur, mesurer_temps_rectangles
 from integration_avancee import mesurer_temps_trapezes, mesurer_temps_simpson
 from visualisation import scipy_trapezes, scipy_simpson, mesurer_temps
-import pandas as pd
+from pandas import DataFrame
 
 def construire_mesurer_temps(repetitions):
     """
@@ -51,7 +51,7 @@ def calculer_df_ref(df_cas, fonctions, mesurer_temps_dict, n_ref, repetitions):
                 "i_num":    round(i_num,   8),
                 "erreur":   erreur,
                 "temps_us": temps * 1e6,})
-    return pd.DataFrame(rows)
+    return DataFrame(rows)
 
 def calculer_convergences(df_cas, fonctions, mesurer_temps_dict, liste_n):
     """

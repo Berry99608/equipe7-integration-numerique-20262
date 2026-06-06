@@ -11,7 +11,7 @@ Système visuel :
 """
 
 import timeit
-import numpy as np
+from numpy import array, clip, diff, linspace, log10, sign, where
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyBboxPatch
@@ -105,14 +105,14 @@ def _legende_2blocs(ax):
 # ─── Fonctions de calcul (inchangées) ────────────────────────────────────────
 
 def scipy_trapezes(p1, p2, p3, p4, a, b, n):
-    x = np.linspace(a, b, n + 1)
+    x = linspace(a, b, n + 1)
     return float(integrate.trapezoid(evaluer_poly(x, p1, p2, p3, p4), x))
 
 
 def scipy_simpson(p1, p2, p3, p4, a, b, n):
     if n % 2 != 0:
         n += 1
-    x = np.linspace(a, b, n + 1)
+    x = linspace(a, b, n + 1)
     return float(integrate.simpson(evaluer_poly(x, p1, p2, p3, p4), x))
 
 
@@ -124,7 +124,7 @@ def mesurer_temps(func, args, repetitions=200):
 
 def graphique_convergence(liste_n, dict_erreurs,
                            titre="Convergence des méthodes", save_path=None):
-    n = np.array(liste_n, dtype=float)
+    n = array(liste_n, dtype=float)
     fig, ax = plt.subplots()
 
     for nom, vals in dict_erreurs.items():
@@ -175,7 +175,7 @@ def graphique_convergence(liste_n, dict_erreurs,
 
 def graphique_temps(liste_n, dict_temps,
                     titre="Temps de calcul vs segments", save_path=None):
-    n = np.array(liste_n, dtype=float)
+    n = array(liste_n, dtype=float)
     fig, ax = plt.subplots()
 
     for nom, vals in dict_temps.items():
@@ -188,9 +188,9 @@ def graphique_temps(liste_n, dict_temps,
     noms_py = [k for k in dict_temps if "python" in k.lower() and "rect" in k.lower()]
     noms_np = [k for k in dict_temps if "numpy"  in k.lower() and "rect" in k.lower()]
     if noms_py and noms_np:
-        t_py = np.array(dict_temps[noms_py[0]])
-        t_np = np.array(dict_temps[noms_np[0]])
-        idx  = np.where(np.diff(np.sign(t_np - t_py)))[0]
+        t_py = array(dict_temps[noms_py[0]])
+        t_np = array(dict_temps[noms_np[0]])
+        idx  = where(diff(sign(t_np - t_py)))[0]
         n_cross = int(liste_n[idx[0]]) if len(idx) > 0 else 40
         y_cross = dict_temps[noms_np[0]][idx[0]] if len(idx) > 0 else 1e-5
         ax.axvline(n_cross, color="#9A958C", ls=":", lw=1.3, zorder=0)
@@ -238,8 +238,8 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
     methodes = [m for m in _ORDRE_METHODES if m in dict_erreurs]
     methodes += [m for m in dict_erreurs if m not in methodes]
 
-    erreurs = np.array([dict_erreurs[m] for m in methodes])
-    data    = np.log10(np.clip(erreurs, 1e-16, None))
+    erreurs = array([dict_erreurs[m] for m in methodes])
+    data    = log10(clip(erreurs, 1e-16, None))
 
     n_rows, n_cols = len(methodes), len(liste_n)
     norm = Normalize(vmin=min(data.min(), -15), vmax=0)
@@ -320,7 +320,7 @@ def graphique_erreur_methodes(liste_n, dict_erreurs,
     bar_h     = 0.28
 
     # gradient 1D rouille → vert, dessiné directement sur ax
-    grad = np.linspace(1, 0, 256).reshape(1, -1)
+    grad = linspace(1, 0, 256).reshape(1, -1)
     im = ax.imshow(
         grad, aspect="auto", cmap=_CMAP_ERREUR,
         extent=[bar_left, bar_right, bar_y, bar_y + bar_h],

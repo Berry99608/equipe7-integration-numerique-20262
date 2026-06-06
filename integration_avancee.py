@@ -1,6 +1,6 @@
-import numpy as np
-from scipy import integrate
-from integration_rectangles import *
+import timeit
+from numpy import linspace, ones, dot
+from integration_rectangles import evaluer_poly, solution_analytique, calculer_erreur
 # ─────────────────────────────────────────────
 # Méthode de Simpson
 # ─────────────────────────────────────────────
@@ -30,16 +30,16 @@ def simpson_numpy(p1, p2, p3, p4, a, b, n):
     if n % 2 != 0:
         n += 1
 
-    x = np.linspace(a, b, n + 1)          # n+1 points : x_0 … x_n
+    x = linspace(a, b, n + 1)          # n+1 points : x_0 … x_n
     y = evaluer_poly(x, p1, p2, p3, p4)
 
     # Coefficients Simpson : 1, 4, 2, 4, 2, …, 4, 1
-    coeffs = np.ones(n + 1)
+    coeffs = ones(n + 1)
     coeffs[1:-1:2] = 4   # indices impairs
     coeffs[2:-2:2] = 2   # indices pairs (sauf extrémités)
 
     h = (b - a) / n
-    return np.dot(coeffs, y) * h / 3
+    return dot(coeffs, y) * h / 3
 
 def erreur_vs_segments_simpson(p1, p2, p3, p4, a, b, liste_n):
     """Retourne les erreurs absolues de chaque méthode pour chaque n."""
@@ -87,15 +87,15 @@ def trapezes_python(p1, p2, p3, p4, a, b, n):
 
 def trapezes_numpy(p1, p2, p3, p4, a, b, n):
     """Méthode des trapèzes composite — vectorisée NumPy."""
-    x = np.linspace(a, b, n + 1)          # n+1 points : x_0 … x_n
+    x = linspace(a, b, n + 1)          # n+1 points : x_0 … x_n
     y = evaluer_poly(x, p1, p2, p3, p4)
 
     # Coefficients trapèzes : 1, 2, 2, …, 2, 1
-    coeffs = np.ones(n + 1)
+    coeffs = ones(n + 1)
     coeffs[1:-1] = 2                       # tous les points intérieurs
 
     h = (b - a) / n
-    return np.dot(coeffs, y) * h / 2
+    return dot(coeffs, y) * h / 2
 
 
 #erreur absolue de chaque methode ,
