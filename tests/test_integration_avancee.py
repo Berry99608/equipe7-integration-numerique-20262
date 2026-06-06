@@ -145,11 +145,11 @@ def test_simpson_python_cubique_exacte():
 
 
 def test_simpson_python_converge(params):
-    """Plus n est grand, plus l'erreur doit diminuer."""
+    """Plus n est grand, plus l'erreur doit diminuer (ou déjà à la précision machine)."""
     i_exact = solution_analytique(**{k: params[k] for k in ("p1", "p2", "p3", "p4", "a", "b")})
     err_10 = calculer_erreur(simpson_python(**params, n=10), i_exact)
     err_1000 = calculer_erreur(simpson_python(**params, n=1000), i_exact)
-    assert err_1000 < err_10
+    assert err_1000 < err_10 or err_10 < 1e-12
 
 
 def test_simpson_python_proche_exact(params):
@@ -188,11 +188,11 @@ def test_simpson_numpy_coherent_avec_python(params):
 
 
 def test_simpson_numpy_converge(params):
-    """Convergence : erreur à n=1000 < erreur à n=10."""
+    """Convergence : erreur à n=1000 < erreur à n=10 (ou déjà à la précision machine)."""
     i_exact = solution_analytique(**{k: params[k] for k in ("p1", "p2", "p3", "p4", "a", "b")})
     err_10 = calculer_erreur(simpson_numpy(**params, n=10), i_exact)
     err_1000 = calculer_erreur(simpson_numpy(**params, n=1000), i_exact)
-    assert err_1000 < err_10
+    assert err_1000 < err_10 or err_10 < 1e-12
 
 
 def test_simpson_numpy_n_impair_accepte(params):
@@ -214,11 +214,11 @@ def test_erreur_vs_segments_simpson_longueur(params):
 
 
 def test_erreur_vs_segments_simpson_convergence(params):
-    """Les erreurs doivent décroître strictement quand n augmente."""
+    """Les erreurs décroissent quand n augmente, ou sont déjà à la précision machine."""
     liste_n = [10, 100, 1000]
     ep, en = erreur_vs_segments_simpson(**params, liste_n=liste_n)
-    assert ep[0] > ep[1] > ep[2]
-    assert en[0] > en[1] > en[2]
+    assert ep[0] > ep[1] > ep[2] or ep[0] < 1e-12
+    assert en[0] > en[1] > en[2] or en[0] < 1e-12
 
 
 def test_erreur_vs_segments_simpson_valeurs_positives(params):
