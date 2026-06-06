@@ -287,6 +287,170 @@ def graphique_temps(liste_n, dict_temps,
     return fig
 
 
+# ─── Figures 3D (EXP 3 — coefficients p et bornes varient) ──────────────────
+
+def _setup_ax3d(ax, fig):
+    """Style Apple minimal pour axes 3D."""
+    fig.patch.set_facecolor(_AXES_FC)
+    for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
+        pane.fill = False
+        pane.set_edgecolor(_GRID_C)
+    ax.tick_params(labelsize=9, colors="#8E8E93")
+    ax.xaxis.label.set_color(_C_LABEL)
+    ax.yaxis.label.set_color(_C_LABEL)
+    ax.zaxis.label.set_color(_C_LABEL)
+
+
+def graphique_convergence_3d(liste_n, convergence,
+                              titre="Convergence 3D", save_path=None):
+    """Courbes 3D : X=log₁₀(n), Y=cas, Z=log₁₀(erreur), couleur=méthode."""
+    cas_labels = list(convergence.keys())
+    log_n = log10(array(liste_n, dtype=float))
+
+    fig = plt.figure(figsize=(8, 4.8))
+    ax  = fig.add_subplot(111, projection="3d")
+    _setup_ax3d(ax, fig)
+
+    for meth_key, label, color in [
+        ("rect", "Rectangle", COL["rect"]),
+        ("trap", "Trapèze",   COL["trap"]),
+        ("simp", "Simpson",   COL["simp"]),
+    ]:
+        for i, cas in enumerate(cas_labels):
+            d     = convergence[cas]["dict_erreurs"]
+            serie = next((v for k, v in d.items()
+                          if meth_key in k.lower() and "python" in k.lower()), None)
+            if serie is None:
+                continue
+            z = log10(clip(array(serie, dtype=float), 1e-16, None))
+            ax.plot(log_n, [i] * len(log_n), z,
+                    color=color, lw=2.2, alpha=0.85,
+                    solid_capstyle="round", solid_joinstyle="round")
+
+    ax.set_xlabel("log₁₀(n)", labelpad=6)
+    ax.set_ylabel("Cas", labelpad=6)
+    ax.set_zlabel("log₁₀(erreur)", labelpad=6)
+    ax.set_yticks(range(len(cas_labels)))
+    ax.set_yticklabels(cas_labels)
+    ax.set_title(titre, fontsize=14, fontweight="semibold", color=_C_TITLE)
+
+    handles = [Line2D([0], [0], color=COL[k], lw=2, label=l)
+               for k, l in [("rect", "Rectangle"), ("trap", "Trapèze"), ("simp", "Simpson")]]
+    ax.legend(handles=handles, fontsize=9, frameon=False)
+
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+
+def graphique_temps_3d(liste_n, convergence,
+                        titre="Temps de calcul 3D", save_path=None):
+    """Courbes 3D : X=log₁₀(n), Y=cas, Z=log₁₀(temps), couleur=méthode."""
+    cas_labels = list(convergence.keys())
+    log_n = log10(array(liste_n, dtype=float))
+
+    fig = plt.figure(figsize=(8, 4.8))
+    ax  = fig.add_subplot(111, projection="3d")
+    _setup_ax3d(ax, fig)
+
+    for meth_key, label, color in [
+        ("rect", "Rectangle", COL["rect"]),
+        ("trap", "Trapèze",   COL["trap"]),
+        ("simp", "Simpson",   COL["simp"]),
+    ]:
+        for i, cas in enumerate(cas_labels):
+            d     = convergence[cas]["dict_temps"]
+            serie = next((v for k, v in d.items()
+                          if meth_key in k.lower() and "python" in k.lower()), None)
+            if serie is None:
+                continue
+            z = log10(clip(array(serie, dtype=float), 1e-20, None))
+            ax.plot(log_n, [i] * len(log_n), z,
+                    color=color, lw=2.2, alpha=0.85,
+                    solid_capstyle="round", solid_joinstyle="round")
+
+    ax.set_xlabel("log₁₀(n)", labelpad=6)
+    ax.set_ylabel("Cas", labelpad=6)
+    ax.set_zlabel("log₁₀(temps s)", labelpad=6)
+    ax.set_yticks(range(len(cas_labels)))
+    ax.set_yticklabels(cas_labels)
+    ax.set_title(titre, fontsize=14, fontweight="semibold", color=_C_TITLE)
+
+    handles = [Line2D([0], [0], color=COL[k], lw=2, label=l)
+               for k, l in [("rect", "Rectangle"), ("trap", "Trapèze"), ("simp", "Simpson")]]
+    ax.legend(handles=handles, fontsize=9, frameon=False)
+
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+
+def _pill3d(ax, cx, cy, height, radius, color, alpha=0.82):
+    """Cylindre surmonté d'un dôme hémisphérique (pillule 3D debout à z=0)."""
+    if height <= 0:
+        return
+    from numpy import linspace, cos, sin, pi, zeros_like, meshgrid as mg
+
+    n_th   = 32
+    theta  = linspace(0, 2 * pi, n_th)
+    dome_r = min(radius, height * 0.40)
+    cyl_h  = height - dome_r
+    kw = dict(color=color, alpha=alpha, linewidth=0, antialiased=True, shade=True)
+
+    # Corps cylindrique
+    T, Z = mg(theta, linspace(0, cyl_h, 24))
+    ax.plot_surface(cx + radius * cos(T), cy + radius * sin(T), Z, **kw)
+
+    # Dôme hémisphérique (phi : équateur → pôle)
+    T2, P = mg(theta, linspace(pi / 2, 0, 16))
+    ax.plot_surface(cx + dome_r * sin(P) * cos(T2),
+                    cy + dome_r * sin(P) * sin(T2),
+                    cyl_h + dome_r * cos(P), **kw)
+
+    # Fond plat
+    T3, R = mg(theta, linspace(0, radius, 8))
+    ax.plot_surface(cx + R * cos(T3), cy + R * sin(T3),
+                    zeros_like(R), **{**kw, "shade": False})
+
+
+def graphique_erreur_3d(liste_n, convergence,
+                         titre="Erreur par méthode — vue 3D", save_path=None):
+    """Pillules 3D : X=cas, Y=méthode, hauteur=−log₁₀(erreur) à n max."""
+    cas_labels = list(convergence.keys())
+    meth_items = [
+        ("rect", "Rectangle", COL["rect"]),
+        ("trap", "Trapèze",   COL["trap"]),
+        ("simp", "Simpson",   COL["simp"]),
+    ]
+
+    fig = plt.figure(figsize=(8, 4.8))
+    ax  = fig.add_subplot(111, projection="3d")
+    _setup_ax3d(ax, fig)
+
+    for j, (meth_key, label, color) in enumerate(meth_items):
+        for i, cas in enumerate(cas_labels):
+            d     = convergence[cas]["dict_erreurs"]
+            serie = next((v for k, v in d.items()
+                          if meth_key in k.lower() and "python" in k.lower()), None)
+            if serie is None:
+                continue
+            height = -log10(max(serie[-1], 1e-16))
+            _pill3d(ax, i, j, height, radius=0.22, color=color)
+
+    ax.set_xlabel("Cas", labelpad=6)
+    ax.set_ylabel("Méthode", labelpad=6)
+    ax.set_zlabel("−log₁₀(erreur)", labelpad=6)
+    ax.set_xticks(range(len(cas_labels)))
+    ax.set_xticklabels(cas_labels)
+    ax.set_yticks(range(len(meth_items)))
+    ax.set_yticklabels([l for _, l, _ in meth_items])
+    ax.set_title(titre, fontsize=14, fontweight="semibold", color=_C_TITLE)
+
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+    return fig
+
+
 # ─── Figure 3 : Heatmap erreur par méthode ────────────────────────────────────
 
 _ORDRE_METHODES = [

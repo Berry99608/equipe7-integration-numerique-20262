@@ -10,7 +10,9 @@ import matplotlib.pyplot as plt
 
 from integration_rectangles import solution_analytique, rectangles_python, rectangles_numpy, calculer_erreur
 from integration_avancee import trapezes_numpy, trapezes_python, simpson_numpy, simpson_python
-from visualisation import scipy_trapezes, scipy_simpson, graphique_convergence, graphique_temps, graphique_erreur_methodes
+from visualisation import (scipy_trapezes, scipy_simpson,
+                           graphique_convergence, graphique_temps, graphique_erreur_methodes,
+                           graphique_convergence_3d, graphique_temps_3d, graphique_erreur_3d)
 from Analyse import construire_mesurer_temps, calculer_convergences, calculer_df_ref, afficher_synthese
 
 # ─── Paramètres globaux ───────────────────────────────────────────────────────
@@ -233,15 +235,21 @@ def lancer_experience(df_cas, label, prefixe):
 
     afficher_synthese(df_ref, f"{label} — synthèse")
 
-    # Cas représentatif = celui avec le plus grand écart d'erreurs entre méthodes
-    def _etendue(data):
-        vals = [e for errs in data["dict_erreurs"].values() for e in errs if e > 0]
-        return math.log10(max(vals)) - math.log10(min(vals)) if vals else 0
-    cas_rep, data_rep = max(convergence.items(), key=lambda kv: _etendue(kv[1]))
-    print(f"\n  Génération des graphiques (cas représentatif : {cas_rep})...")
-    graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence")
-    graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul")
-    graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode")
+    if prefixe == "exp3":
+        print(f"\n  Génération des graphiques 3D (tous les cas)...")
+        graphique_convergence_3d(Liste_n, convergence, titre=f"{label} — Convergence 3D")
+        graphique_temps_3d(Liste_n, convergence, titre=f"{label} — Temps de calcul 3D")
+        graphique_erreur_3d(Liste_n, convergence, titre=f"{label} — Erreur par méthode 3D")
+    else:
+        # Cas représentatif = celui avec le plus grand écart d'erreurs entre méthodes
+        def _etendue(data):
+            vals = [e for errs in data["dict_erreurs"].values() for e in errs if e > 0]
+            return math.log10(max(vals)) - math.log10(min(vals)) if vals else 0
+        cas_rep, data_rep = max(convergence.items(), key=lambda kv: _etendue(kv[1]))
+        print(f"\n  Génération des graphiques (cas représentatif : {cas_rep})...")
+        graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence")
+        graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul")
+        graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode")
     print(f"    3 graphiques générés.")
 
     print(f"  {label} terminée.")
