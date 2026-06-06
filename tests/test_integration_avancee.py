@@ -132,7 +132,7 @@ def test_mesurer_temps_trapezes_numpy_plus_rapide_grand_n(params):
 
 def test_simpson_python_constante_exacte():
     """f(x) = 5 sur [4, 10] → intégrale exacte = 30.0."""
-    assert simpson_python(5, 0, 0, 0, 0, 4, 10) == pytest.approx(30.0)
+    assert simpson_python(5, 0, 0, 0, 4, 10, 10) == pytest.approx(30.0)
 
 
 def test_simpson_python_cubique_exacte():
