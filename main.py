@@ -225,7 +225,12 @@ def lancer_experience(df_cas, label, prefixe):
     """
     print(f"\n{SEP}\n  {label}\n{SEP}")
     print(f"\n  Cas de test :\n")
-    print(df_cas.to_string(index=False))
+    df_affich = df_cas.copy()
+    df_affich["I_exact"] = df_cas.apply(
+        lambda r: solution_analytique(r["p1"], r["p2"], r["p3"], r["p4"], r["a"], r["b"]),
+        axis=1
+    ).round(6)
+    print(df_affich.to_string(index=False))
 
     print(f"\n  Calcul des résultats à n = {n_ref} segments...")
     df_ref = calculer_df_ref(df_cas, FONCTIONS, MESURER_TEMPS, n_ref, REPETITIONS)

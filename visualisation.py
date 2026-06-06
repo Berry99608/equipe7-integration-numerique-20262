@@ -219,8 +219,10 @@ def graphique_convergence(liste_n, dict_erreurs,
     for y_end, label, meth_key in adjusted:
         _label_fin(ax, n[-1], y_end, label, meth_key)
 
+    all_vals = [v for vals in dict_erreurs.values() for v in vals if v > 0]
+    ymax = max(all_vals) * 5 if all_vals else 3
     ax.set_xlim(n[0] * 0.8, n[-1] * 4.0)
-    ax.set_ylim(1e-16, 3)
+    ax.set_ylim(1e-16, ymax)
     ax.set_xlabel("Nombre de segments n")
     ax.set_ylabel("Erreur absolue")
     ax.set_title(titre, loc="left", pad=16)
