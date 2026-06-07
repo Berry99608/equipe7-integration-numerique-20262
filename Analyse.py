@@ -87,9 +87,13 @@ def afficher_synthese(df_ref, titre):
       2. Meilleure méthode (erreur minimale) pour chaque cas
     """
     print(f"\n{'='*62}\n  {titre}\n{'='*62}")
-    classement = df_ref.groupby("methode")["erreur"].mean().sort_values()
+    ordre = df_ref.groupby("methode")["erreur"].mean().sort_values().index
+    classement = (df_ref.groupby("methode")[["erreur","temps_us"]]
+                        .mean()
+                        .loc[ordre]
+                        .reset_index())
     print("\n  Classement global (erreur moyenne) :")
-    print(classement.to_string(float_format=lambda x: f"{x:.3e}"))
+    print(classement.to_string(index=False,float_format=lambda x: f"{x:.3e}"))
     meilleurs = df_ref.loc[df_ref.groupby("cas")["erreur"].idxmin(),
                            ["cas", "methode", "erreur", "temps_us"]]
     print("\n  Meilleure méthode par cas :")
