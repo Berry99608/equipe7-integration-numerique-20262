@@ -73,7 +73,7 @@ df_exp2 = DataFrame({
     "b":   [ 0.5,   2.0,  5.0,  10.0,  20.0],
 })
 
-# EXP 1 : bornes varient et coefficients p varient simultanément
+# EXP 3 : bornes varient et coefficients p varient simultanément
 # Objectif : Cas général où tout varie
 df_exp3 = DataFrame({
     "cas": ["cas A", "cas B", "cas C", "cas D", "cas E"],
@@ -120,6 +120,22 @@ def demander_float(invite, defaut):
         print("  Valeur invalide — valeur par défaut utilisée.")
         return defaut
 
+def demander_save_path(invite="Sauvegarder les figures ?"):
+    """
+    Demande à l'utilisateur s'il veut sauvegarder les figures et dans quel dossier.
+    Retourne un préfixe de chemin (ex: "figures/exp1") ou None si l'utilisateur refuse.
+    Le format est déduit de l'extension choisie (.pdf, .png, .svg).
+    Si aucune extension n'est fournie, .pdf est utilisé par défaut.
+    """
+    rep = input(f"\n  {invite} [o/N] : ").strip().lower()
+    if rep != "o":
+        return None
+    chemin = input(
+        "  Dossier et préfixe (ex: figures/exp1, Entrée = dossier courant) : "
+    ).strip()
+    if chemin == "":
+        chemin = "figure"
+    return chemin
 
 def saisir_parametres():
     """
@@ -164,6 +180,37 @@ def afficher_resultats(p1, p2, p3, p4, a, b):
 
 # ─── Menu graphiques ──────────────────────────────────────────────────────────
 
+def _build_save(prefixe, suffixe):
+    """
+    Construit le chemin complet d'une figure.
+    Si prefixe est None, retourne None (pas de sauvegarde).
+    Le format PDF est utilisé par défaut si aucune extension n'est présente.
+    Exemples :
+      _build_save("figures/exp1", "conv")  → "figures/exp1_conv.pdf"
+      _build_save(None, "conv")            → None
+    """
+    import os
+    if prefixe is None:
+        return None
+
+    #Nettoyer les caractères parasites en fin de chaîne (virgule, espace, point)
+    prefixe = prefixe.rstrip(" ,.@$")
+
+    # Ajouter .pdf si le préfixe ne contient pas déjà une extension
+    if "." not in prefixe.split("/")[-1]:
+        chemin = f"{prefixe}_{suffixe}.pdf"
+    # Sinon remplacer le suffixe avant l'extension
+    else:
+        base, ext = prefixe.rsplit(".", 1)
+        chemin = f"{base}_{suffixe}.{ext}"
+
+    # Créer le dossier parent s'il n'existe pas encore
+    dossier = os.path.dirname(chemin)
+    if dossier:
+        os.makedirs(dossier, exist_ok=True)
+
+    return chemin
+
 def menu_graphiques(p1, p2, p3, p4, a, b):
     """
     Affiche un menu pour choisir quel(s) graphique(s) tracer.
@@ -198,14 +245,17 @@ def menu_graphiques(p1, p2, p3, p4, a, b):
             for nom in FONCTIONS
         }
 
+    #Demander la sauvegarde avant d'afficher
+    save_pref = demander_save_path()
+
     if choix in ("1", "4"):
-        graphique_convergence(Liste_n, dict_erreurs)
+        graphique_convergence(Liste_n, dict_erreurs, save_path=_build_save(save_pref, "convergence"))
 
     if choix in ("2", "4"):
-        graphique_temps(Liste_n, dict_temps)
+        graphique_temps(Liste_n, dict_temps, save_path=_build_save(save_pref, "temps"))
 
     if choix in ("3", "4"):
-        graphique_erreur_methodes(Liste_n, dict_erreurs)
+        graphique_erreur_methodes(Liste_n, dict_erreurs, save_path=_build_save(save_pref, "erreur"))
 
     plt.show()
 
@@ -240,11 +290,14 @@ def lancer_experience(df_cas, label, prefixe):
 
     afficher_synthese(df_ref, f"{label} — synthèse")
 
+    # Proposer la sauvegarde des figures
+    save_pref = demander_save_path(f"Sauvegarder les figures de {label} ?")
+
     if prefixe == "exp3":
         print(f"\n  Génération des graphiques 3D (tous les cas)...")
-        graphique_convergence_3d(Liste_n, convergence, titre=f"{label} — Convergence 3D")
-        graphique_temps_3d(Liste_n, convergence, titre=f"{label} — Temps de calcul 3D")
-        graphique_erreur_3d(Liste_n, convergence, titre=f"{label} — Erreur par méthode 3D")
+        graphique_convergence_3d(Liste_n, convergence, titre=f"{label} — Convergence 3D", save_path=_build_save(save_pref, "conv3d"))
+        graphique_temps_3d(Liste_n, convergence, titre=f"{label} — Temps de calcul 3D", save_path=_build_save(save_pref, "temps3d"))
+        graphique_erreur_3d(Liste_n, convergence, titre=f"{label} — Erreur par méthode 3D", save_path=_build_save(save_pref, "erreur3d"))
     else:
         # Cas représentatif = celui avec le plus grand écart d'erreurs entre méthodes
         def _etendue(data):
@@ -252,9 +305,13 @@ def lancer_experience(df_cas, label, prefixe):
             return math.log10(max(vals)) - math.log10(min(vals)) if vals else 0
         cas_rep, data_rep = max(convergence.items(), key=lambda kv: _etendue(kv[1]))
         print(f"\n  Génération des graphiques (cas représentatif : {cas_rep})...")
-        graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence")
-        graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul")
-        graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode")
+        graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence", save_path=_build_save(save_pref, "convergence"))
+        graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul", save_path=_build_save(save_pref, "temps"))
+        graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode", save_path=_build_save(save_pref, "erreur"))
+    print(f"    3 graphiques générés.")
+
+    if save_pref:
+        print(f"  Figures sauvegardées avec le préfixe : {save_pref}_*.pdf")
     print(f"    3 graphiques générés.")
 
     print(f"  {label} terminée.")
