@@ -24,7 +24,10 @@ from integration_rectangles import evaluer_poly
 for _f in ("/System/Library/Fonts/SFNS.ttf",
            "/System/Library/Fonts/SFNSItalic.ttf",
            "/System/Library/Fonts/SFNSMono.ttf"):
-    _fm.fontManager.addfont(_f)
+    try:
+        _fm.fontManager.addfont(_f)
+    except Exception:
+        pass
 
 _SF      = "System Font"    # SF Pro — tout le texte
 _SF_MONO = ".SF NS Mono"    # SF Mono — valeurs numériques heatmap
@@ -73,8 +76,10 @@ plt.rcParams.update({
 
 # Palette Okabe–Ito  →  couleur = méthode mathématique
 COL = {"rect": "#0072B2", "trap": "#E69F00", "simp": "#009E73"}
+
 # Style de trait     →  implémentation
 LS  = {"python": "-", "numpy": (0, (5, 3)), "scipy": (0, (1, 2.5))}
+
 # Marqueurs par série
 _MK = {
     "Rectangle Python": "o", "Rectangle NumPy": "s",
@@ -123,11 +128,13 @@ def _legende_2blocs(ax):
 # ─── Fonctions de calcul (inchangées) ────────────────────────────────────────
 
 def scipy_trapezes(p1, p2, p3, p4, a, b, n):
+    """Intégration trapèzes via scipy.integrate.trapezoid."""
     x = linspace(a, b, n + 1)
     return float(integrate.trapezoid(evaluer_poly(x, p1, p2, p3, p4), x))
 
 
 def scipy_simpson(p1, p2, p3, p4, a, b, n):
+    """Intégration Simpson via scipy.integrate.simpson (n forcé pair)."""
     if n % 2 != 0:
         n += 1
     x = linspace(a, b, n + 1)
@@ -135,6 +142,7 @@ def scipy_simpson(p1, p2, p3, p4, a, b, n):
 
 
 def mesurer_temps(func, args, repetitions=200):
+    """Retourne le temps moyen par appel (s) via timeit. Utilisé pour SciPy."""
     return timeit.Timer(lambda: func(*args)).timeit(number=repetitions) / repetitions
 
 
@@ -171,6 +179,11 @@ def _cle_impl(ax):
 
 def graphique_convergence(liste_n, dict_erreurs,
                            titre="Convergence des méthodes", save_path=None):
+    """
+    Courbes erreur absolue vs n en log-log pour chaque méthode.
+    Ajoute une bande de précision machine et un repère de pente -2.
+    Retourne : matplotlib.figure.Figure
+    """
     n = array(liste_n, dtype=float)
     fig, ax = plt.subplots(figsize=(8, 4.8))
     ax.set_xscale("log")
@@ -237,6 +250,11 @@ def graphique_convergence(liste_n, dict_erreurs,
 
 def graphique_temps(liste_n, dict_temps,
                     titre="Temps de calcul vs segments", save_path=None):
+    """
+    Courbes temps moyen par appel vs n en log-log.
+    Annote le point de croisement Python/NumPy pour les rectangles.
+    Retourne : matplotlib.figure.Figure
+    """
     n = array(liste_n, dtype=float)
     fig, ax = plt.subplots(figsize=(8, 4.8))
     ax.set_xscale("log")
@@ -305,7 +323,12 @@ def _setup_ax3d(ax, fig):
 
 def graphique_convergence_3d(liste_n, convergence,
                               titre="Convergence 3D", save_path=None):
-    """Courbes 3D : X=log₁₀(n), Y=cas, Z=log₁₀(erreur), couleur=méthode."""
+    """
+    Courbes de convergence 3D : X=log10(n), Y=indice du cas, Z=log10(erreur).
+    Une courbe par méthode mathématique (couleur), tracée pour chaque cas.
+    Utilisé pour EXP 3 où plusieurs cas sont comparés simultanément.
+    Retourne : matplotlib.figure.Figure
+    """
     cas_labels = list(convergence.keys())
     log_n = log10(array(liste_n, dtype=float))
 
@@ -347,7 +370,11 @@ def graphique_convergence_3d(liste_n, convergence,
 
 def graphique_temps_3d(liste_n, convergence,
                         titre="Temps de calcul 3D", save_path=None):
-    """Courbes 3D : X=log₁₀(n), Y=cas, Z=log₁₀(temps), couleur=méthode."""
+    """
+    Courbes de temps 3D : X=log10(n), Y=indice du cas, Z=log10(temps).
+    Même structure que graphique_convergence_3d mais pour les temps.
+    Retourne : matplotlib.figure.Figure
+    """
     cas_labels = list(convergence.keys())
     log_n = log10(array(liste_n, dtype=float))
 
@@ -388,7 +415,10 @@ def graphique_temps_3d(liste_n, convergence,
 
 
 def _pill3d(ax, cx, cy, height, radius, color, alpha=0.82):
-    """Cylindre surmonté d'un dôme hémisphérique (pillule 3D debout à z=0)."""
+    """
+    Cylindre surmonté d'un dôme hémisphérique (pillule 3D debout à z=0).
+    Utilisée dans graphique_erreur_3d pour représenter l'erreur par méthode.
+    """
     if height <= 0:
         return
     from numpy import linspace, cos, sin, pi, zeros_like, meshgrid as mg
@@ -417,7 +447,11 @@ def _pill3d(ax, cx, cy, height, radius, color, alpha=0.82):
 
 def graphique_erreur_3d(liste_n, convergence,
                          titre="Erreur par méthode — vue 3D", save_path=None):
-    """Pillules 3D : X=cas, Y=méthode, hauteur=−log₁₀(erreur) à n max."""
+    """
+    Pillules 3D : X=cas, Y=méthode, hauteur=−log₁₀(erreur) à n max.
+    Plus la pillule est haute, plus la méthode est précise.
+    Retourne : matplotlib.figure.Figure
+    """
     cas_labels = list(convergence.keys())
     meth_items = [
         ("rect", "Rectangle", COL["rect"]),
@@ -475,6 +509,12 @@ _CMAP_ERREUR = LinearSegmentedColormap.from_list("erreur_cmap", [
 def graphique_erreur_methodes(liste_n, dict_erreurs,
                                titre="Erreur par méthode et par nombre de segments",
                                save_path=None):
+    """
+    Heatmap log10(erreur) : lignes = méthodes, colonnes = valeurs de n.
+    Chaque cellule affiche la valeur numérique log10(erreur).
+    Une barre de couleur en bas explique l'échelle.
+    Retourne : matplotlib.figure.Figure
+    """
     methodes = [m for m in _ORDRE_METHODES if m in dict_erreurs]
     methodes += [m for m in dict_erreurs if m not in methodes]
 
