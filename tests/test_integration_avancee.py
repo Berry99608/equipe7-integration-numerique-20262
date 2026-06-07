@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 from integration_avancee import (
     trapezes_python,
     trapezes_numpy,

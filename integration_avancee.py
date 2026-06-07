@@ -1,3 +1,12 @@
+"""
+integration_avancee.py
+======================
+Module 2 — MGA802 Mini-Projet B
+Implémentation des méthodes de trapèze et de Simpson (Python pur + NumPy).
+Importe evaluer_poly, solution_analytique et calculer_erreur depuis
+integration_rectangles pour éviter tout doublon de code.
+"""
+
 import timeit
 from numpy import linspace, ones, dot
 from integration_rectangles import evaluer_poly, solution_analytique, calculer_erreur
@@ -6,8 +15,13 @@ from integration_rectangles import evaluer_poly, solution_analytique, calculer_e
 # ─────────────────────────────────────────────
 
 def simpson_python(p1, p2, p3, p4, a, b, n):
-    """Méthode de Simpson composite — boucle Python pure.
-    n doit être pair
+    """
+    Méthode de Simpson composite — boucle Python pure.
+    Sur chaque segment [x_i, x_{i+1}], la formule de Simpson est :
+        S_i = (h/3) · [f(x_i) + 4·f(milieu) + f(x_{i+1})]
+    Ce qui, développé sur n segments, donne les coefficients 1,4,2,4,...,4,1.
+    n est forcé pair car la formule classique l'exige.
+    Retourne : float - valeur approchée de l'intégrale
     """
     if n % 2 != 0:
         n += 1  # Simpson exige un nombre pair de sous-intervalles
@@ -26,7 +40,12 @@ def simpson_python(p1, p2, p3, p4, a, b, n):
 
 
 def simpson_numpy(p1, p2, p3, p4, a, b, n):
-    """Méthode de Simpson composite — vectorisée NumPy."""
+    """
+    Méthode de Simpson composite — vectorisée NumPy.
+    Construit directement le vecteur de coefficients [1,4,2,4,...,4,1]
+    et effectue un produit scalaire unique pour toute la somme.
+    Retourne : float - valeur approchée de l'intégrale
+    """
     if n % 2 != 0:
         n += 1
 
@@ -57,7 +76,10 @@ def erreur_vs_segments_simpson(p1, p2, p3, p4, a, b, liste_n):
 
 
 def mesurer_temps_simpson(p1, p2, p3, p4, a, b, n, repetitions=100):
-    """Mesure le temps moyen d'exécution (en secondes) sur `repetitions` appels."""
+    """
+    Mesure le temps moyen d'exécution (en secondes) sur `repetitions` appels.
+    Retourne : tuple (float, float) - (temps_python, temps_numpy) en secondes par appel
+    """
     temps_python = timeit.timeit(
         lambda: simpson_python(p1, p2, p3, p4, a, b, n),
         number=repetitions

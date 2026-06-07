@@ -1,4 +1,7 @@
 """
+Analyse.py
+==========
+Module 4 — MGA802 Mini-Projet B
 Orchestration des calculs d'analyse numérique:
     - construction du dictionnaire de fonctions de mesure de temps
     - calcul des erreurs et temps à n fixé
