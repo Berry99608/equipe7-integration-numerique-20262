@@ -49,10 +49,10 @@ Le programme affiche un menu interactif à deux niveaux :
 - **[2] Expériences prédéfinies** — lancer un des trois scénarios :
   - **EXP 1** — bornes fixes, coefficients p varient
   - **EXP 2** — coefficients fixes, bornes varient
-  - **EXP 3** — coefficients et bornes varient simultanément
+  - **EXP 3** — coefficients et bornes varient simultanément → génère des graphiques 3D
 - **[0] Quitter**
 
-Les graphiques s'affichent à l'écran via `plt.show()` ; aucun fichier n'est sauvegardé automatiquement.
+Les graphiques s'affichent à l'écran via `plt.show()`. Avant l'affichage, le programme demande si vous souhaitez sauvegarder les figures ; si oui, indiquez un dossier et un préfixe (ex: `figures/exp1`) et les fichiers seront exportés en PDF.
 
 ## Modules
 
@@ -81,10 +81,10 @@ Les graphiques s'affichent à l'écran via `plt.show()` ; aucun fichier n'est sa
 
 | Fonction | Description |
 |---|---|
-| `construire_mesurer_temps(repetitions)` | Méthode qui retourne le dictionnaire |
-| `calculer_df_ref(df_cas, fonctions, mesurer_temps_dict, n_ref, repetitions)` | DataFrame (cas × méthode) : valeur numérique, erreur et temps à n_ref  |
-| `calculer_convergence(df_cas, fonctions, mesurer_temps_dict, liste_n)` | Dict {cas: {dict_erreurs, dict_temps}} sur toute liste_n  |
-| `afficher_synthèse(df_ref, titre)` | Affiche classement global et meilleure méthode par cas dans le terminal |
+| `construire_mesurer_temps(repetitions)` | Retourne le dictionnaire des 8 fonctions de mesure de temps |
+| `calculer_df_ref(df_cas, fonctions, mesurer_temps_dict, n_ref, repetitions)` | DataFrame (cas × méthode) : valeur numérique, erreur et temps à n_ref |
+| `calculer_convergences(df_cas, fonctions, mesurer_temps_dict, liste_n)` | Dict `{cas: {dict_erreurs, dict_temps}}` sur toute liste_n |
+| `afficher_synthese(df_ref, titre)` | Affiche classement global et meilleure méthode par cas dans le terminal |
 
 ### `visualisation.py`
 
@@ -96,14 +96,22 @@ Les graphiques s'affichent à l'écran via `plt.show()` ; aucun fichier n'est sa
 | `graphique_convergence(liste_n, dict_erreurs, titre, save_path)` | Courbes erreur absolue vs n (log-log), repère de pente −2, bande précision machine |
 | `graphique_temps(liste_n, dict_temps, titre, save_path)` | Courbes temps de calcul vs n (log-log), annotation du point de croisement Python/NumPy |
 | `graphique_erreur_methodes(liste_n, dict_erreurs, titre, save_path)` | Heatmap log₁₀\|erreur\| par méthode et par n, avec barre de couleur arrondie |
+| `graphique_convergence_3d(liste_n, convergence, titre, save_path)` | Courbes 3D erreur vs n vs cas — utilisé pour EXP 3 |
+| `graphique_temps_3d(liste_n, convergence, titre, save_path)` | Courbes 3D temps vs n vs cas — utilisé pour EXP 3 |
+| `graphique_erreur_3d(liste_n, convergence, titre, save_path)` | Pillules 3D hauteur = précision par méthode — utilisé pour EXP 3 |
 
 **Système visuel unifié** — palette Okabe-Ito (daltonisme) :
 
-| Couleur | Méthode | Style de trait | Implémentation |
-|---|---|---|---|
-| `#0072B2` bleu | Rectangle | `—` solide | Python pur |
-| `#E69F00` ambre | Trapèze | `--` tirets | NumPy |
-| `#009E73` vert | Simpson | `··` pointillés | SciPy |
+La couleur encode la **méthode mathématique**, le style de trait encode l'**implémentation** ; les deux dimensions sont indépendantes.
+
+| Dimension | Valeur | Signification |
+|---|---|---|
+| Couleur | `#0072B2` bleu | Rectangle |
+| Couleur | `#E69F00` ambre | Trapèze |
+| Couleur | `#009E73` vert | Simpson |
+| Trait | `—` solide | Python pur |
+| Trait | `--` tirets longs | NumPy |
+| Trait | `··` pointillés | SciPy |
 
 ## Tests
 
