@@ -52,7 +52,7 @@ Le programme affiche un menu interactif à deux niveaux :
   - **EXP 3** — coefficients et bornes varient simultanément → génère des graphiques 3D
 - **[0] Quitter**
 
-Les graphiques s'affichent à l'écran via `plt.show()`. Avant l'affichage, le programme demande si vous souhaitez sauvegarder les figures ; si oui, indiquez un dossier et un préfixe (ex: `figures/exp1`) et les fichiers seront exportés en PDF.
+Les graphiques s'affichent à l'écran via `plt.show()`. Après fermeture des fenêtres, le programme demande si vous souhaitez sauvegarder les figures ; si oui, indiquez un dossier et un préfixe (ex: `figures/exp1`) et les fichiers seront exportés en PDF.
 
 ## Modules
 

@@ -245,19 +245,21 @@ def menu_graphiques(p1, p2, p3, p4, a, b):
             for nom in FONCTIONS
         }
 
-    #Demander la sauvegarde avant d'afficher
-    save_pref = demander_save_path()
-
+    figs = {}
     if choix in ("1", "4"):
-        graphique_convergence(Liste_n, dict_erreurs, save_path=_build_save(save_pref, "convergence"))
-
+        figs["convergence"] = graphique_convergence(Liste_n, dict_erreurs)
     if choix in ("2", "4"):
-        graphique_temps(Liste_n, dict_temps, save_path=_build_save(save_pref, "temps"))
-
+        figs["temps"] = graphique_temps(Liste_n, dict_temps)
     if choix in ("3", "4"):
-        graphique_erreur_methodes(Liste_n, dict_erreurs, save_path=_build_save(save_pref, "erreur"))
+        figs["erreur"] = graphique_erreur_methodes(Liste_n, dict_erreurs)
 
     plt.show()
+
+    save_pref = demander_save_path()
+    if save_pref:
+        for suffixe, fig in figs.items():
+            fig.savefig(_build_save(save_pref, suffixe), dpi=150, bbox_inches="tight")
+        print(f"  Figures sauvegardées avec le préfixe : {save_pref}_*.pdf")
 
 
 # ─── Expériences prédéfinies ──────────────────────────────────────────────────
@@ -290,14 +292,13 @@ def lancer_experience(df_cas, label, prefixe):
 
     afficher_synthese(df_ref, f"{label} — synthèse")
 
-    # Proposer la sauvegarde des figures
-    save_pref = demander_save_path(f"Sauvegarder les figures de {label} ?")
-
     if prefixe == "exp3":
         print(f"\n  Génération des graphiques 3D (tous les cas)...")
-        graphique_convergence_3d(Liste_n, convergence, titre=f"{label} — Convergence 3D", save_path=_build_save(save_pref, "conv3d"))
-        graphique_temps_3d(Liste_n, convergence, titre=f"{label} — Temps de calcul 3D", save_path=_build_save(save_pref, "temps3d"))
-        graphique_erreur_3d(Liste_n, convergence, titre=f"{label} — Erreur par méthode 3D", save_path=_build_save(save_pref, "erreur3d"))
+        figs = {
+            "conv3d":   graphique_convergence_3d(Liste_n, convergence, titre=f"{label} — Convergence 3D"),
+            "temps3d":  graphique_temps_3d(Liste_n, convergence, titre=f"{label} — Temps de calcul 3D"),
+            "erreur3d": graphique_erreur_3d(Liste_n, convergence, titre=f"{label} — Erreur par méthode 3D"),
+        }
     else:
         # Cas représentatif = celui avec le plus grand écart d'erreurs entre méthodes
         def _etendue(data):
@@ -305,14 +306,20 @@ def lancer_experience(df_cas, label, prefixe):
             return math.log10(max(vals)) - math.log10(min(vals)) if vals else 0
         cas_rep, data_rep = max(convergence.items(), key=lambda kv: _etendue(kv[1]))
         print(f"\n  Génération des graphiques (cas représentatif : {cas_rep})...")
-        graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence", save_path=_build_save(save_pref, "convergence"))
-        graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul", save_path=_build_save(save_pref, "temps"))
-        graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode", save_path=_build_save(save_pref, "erreur"))
+        figs = {
+            "convergence": graphique_convergence(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Convergence"),
+            "temps":       graphique_temps(Liste_n, data_rep["dict_temps"], titre=f"{label} — Temps de calcul"),
+            "erreur":      graphique_erreur_methodes(Liste_n, data_rep["dict_erreurs"], titre=f"{label} — Erreur par méthode"),
+        }
     print(f"    3 graphiques générés.")
 
+    plt.show()
+
+    save_pref = demander_save_path(f"Sauvegarder les figures de {label} ?")
     if save_pref:
+        for suffixe, fig in figs.items():
+            fig.savefig(_build_save(save_pref, suffixe), dpi=150, bbox_inches="tight")
         print(f"  Figures sauvegardées avec le préfixe : {save_pref}_*.pdf")
-    print(f"    3 graphiques générés.")
 
     print(f"  {label} terminée.")
     return df_ref, convergence
@@ -351,7 +358,8 @@ def main():
             menu_graphiques(p1, p2, p3, p4, a, b)
 
         elif choix == "2":
-            print("""
+            while True:
+                print("""
   Expériences disponibles
   ─────────────────────────────────────────
   [1]  EXP 1 — coefficients p varient, bornes fixes
@@ -360,18 +368,19 @@ def main():
   [4]  Toutes les expériences
   [0]  Retour
   ─────────────────────────────────────────""")
-            sub = input("  Votre choix : ").strip()
-            if sub == "4":
-                for df, label, pref in EXPERIENCES.values():
+                sub = input("  Votre choix : ").strip()
+                if sub == "4":
+                    for df, label, pref in EXPERIENCES.values():
+                        lancer_experience(df, label, pref)
+                    break
+                elif sub in EXPERIENCES:
+                    df, label, pref = EXPERIENCES[sub]
                     lancer_experience(df, label, pref)
-            elif sub in EXPERIENCES:
-                df, label, pref = EXPERIENCES[sub]
-                lancer_experience(df, label, pref)
-            elif sub != "0":
-                print("  Choix invalide.")
-                continue
-            if sub in ("1", "2", "3", "4"):
-                plt.show()
+                    break
+                elif sub == "0":
+                    break
+                else:
+                    print("  Choix invalide.")
 
         elif choix == "0":
             print("\n  Au revoir !\n")
